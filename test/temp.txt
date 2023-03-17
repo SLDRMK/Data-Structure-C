@@ -1,0 +1,26 @@
+#include <stdio.h>
+
+int main()
+{
+    long long int MAXINT = (long long)1024 * 1024 * 1024 * 4 - 1;
+    int n, arrsize;
+    scanf_s("%d%d", &n, &arrsize);
+    if (n > arrsize)
+    {
+        printf("-1");
+        return;
+    }
+    long long int array[20];
+    array[0] = 1;
+    for (int i = 1; i < n; i++)
+    {
+        if (array[i - 1] * (long long int)(i * 2) > MAXINT)
+        {
+            printf("-1");
+            return;
+        }
+        array[i] = array[i - 1] * (long long int)(i * 2);
+    }
+    for (int i = 0; i < n; i++)
+        printf("%lld ", array[i]);
+}
