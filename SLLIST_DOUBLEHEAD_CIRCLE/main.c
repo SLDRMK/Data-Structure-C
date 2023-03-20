@@ -219,27 +219,27 @@ int locateOrderly(pNode head, NodeType x)
     return index;
 }
 
-// test function
 void main()
 {
-    pNode list = newNode(1);
-    add(&list, 2);
-    add(&list, 4);
-    add(&list, 6);
-    add(&list, 25);
-    add(&list, 26);
-    print(list);
-    printf("\n");
-    pNode list1 = newNode(1);
-    add(&list1, 2);
-    add(&list1, 5);
-    add(&list1, 6);
-    add(&list1, 10);
-    pNode list2 = newNode(1);
-    add(&list2, 2);
-    add(&list2, 6);
-    add(&list2, 12);
-    add(&list2, 25);
-    list = modifyOrderly(&list, list1, list2);
-    print(list);
+    int temp = 0, c;
+    c = getchar();
+    pNode heada = newNode(c);
+    while ((c = getchar()) != EOF && c != '\n')
+    {
+        add(&heada, getchar());
+    }
+    c = getchar();
+    pNode headb = newNode(c);
+    while ((c = getchar()) != EOF && c != '\n')
+    {
+        add(&headb, getchar());
+    }
+    c = getchar();
+    pNode headc = newNode(c);
+    while ((c = getchar()) != EOF && c != '\n')
+    {
+        add(&headc, getchar());
+    }
+    modifyOrderly(&heada, headb, headc);
+    printc(heada);
 }

@@ -23,7 +23,10 @@ pNode deleteRangeOrderly(ppNode head, NodeType mink, NodeType maxk);
 void releaseList(ppNode head);
 pNode reverse(ppNode head);
 pNode addHead(ppNode head, NodeType x);
+pNode modifyOrderly(ppNode heada, pNode headb, pNode headc);
+int locateOrderly(pNode head, NodeType x);
 
+// make a new Node
 pNode newNode(NodeType x)
 {
     pNode temp = (pNode)malloc(sizeof(Node));
@@ -32,6 +35,7 @@ pNode newNode(NodeType x)
     return temp;
 }
 
+// return the end of head
 pNode end(pNode head)
 {
     if (!head)
@@ -41,6 +45,7 @@ pNode end(pNode head)
     return head;
 }
 
+// return the length of the list and update the value length
 int num(pNode head)
 {
     length = 0;
@@ -50,6 +55,7 @@ int num(pNode head)
     return length;
 }
 
+// print the whole list as integers with blank intervals
 void print(pNode head)
 {
     pNode temp = head;
@@ -63,6 +69,7 @@ void print(pNode head)
     printf("%d", temp->data);
 }
 
+// print the whole list as characters with comma intervals
 void printc(pNode head)
 {
     pNode temp = head;
@@ -76,6 +83,7 @@ void printc(pNode head)
     printf("%c", temp->data);
 }
 
+// add a new Node in the end
 void add(ppNode head, NodeType x)
 {
     pNode tail = newNode(x);
@@ -85,6 +93,7 @@ void add(ppNode head, NodeType x)
     length++;
 }
 
+// delete the certain Node by index, which starts from zero and return the new list
 pNode delete(ppNode head, int index)
 {
     pNode temp = *head;
@@ -106,6 +115,7 @@ pNode delete(ppNode head, int index)
     return *head;
 }
 
+// delete the Nodes with data that are in the range of (mink, maxk) and return the new list
 pNode deleteRange(ppNode head, NodeType mink, NodeType maxk)
 {
     pNode temp = NULL;
@@ -126,6 +136,7 @@ pNode deleteRange(ppNode head, NodeType mink, NodeType maxk)
     return temp;
 }
 
+// delete the Nodes with data that are in the range of (mink, maxk) in a oroderly list and return the new list
 pNode deleteRangeOrderly(ppNode head, NodeType mink, NodeType maxk)
 {
     pNode temp = *head;
@@ -144,6 +155,7 @@ pNode deleteRangeOrderly(ppNode head, NodeType mink, NodeType maxk)
     return *head;
 }
 
+// reverse the whole list and return the new list
 pNode reverse(ppNode head)
 {
     pNode pointer = *head, temp = NULL;
@@ -154,6 +166,7 @@ pNode reverse(ppNode head)
     return temp;
 }
 
+// add a Node before the whole list and return the new list
 pNode addHead(ppNode head, NodeType x)
 {
     pNode newHead = newNode(x);
@@ -162,6 +175,7 @@ pNode addHead(ppNode head, NodeType x)
     return *head;
 }
 
+// release the space occupied by the list
 void releaseList(ppNode head)
 {
     pNode temp = *head;
@@ -174,15 +188,58 @@ void releaseList(ppNode head)
     }
 }
 
+// delete the Nodes in the heada that have the same data both in headb and headc
+pNode modifyOrderly(ppNode heada, pNode headb, pNode headc)
+{
+    pNode temp = *heada;
+    NodeType tempData;
+    int index = 0;
+    while (temp)
+    {
+        tempData = temp->data;
+        temp = temp->next;
+        if (locateOrderly(headb, tempData) > -1 && locateOrderly(headc, tempData) > -1)
+            *heada = delete(heada, index), index--;
+        index++;
+    }
+    return *heada;
+}
+
+// locate a certain datum in the list and return its first index (start from 0); if it doesn't exist, return -1
+int locateOrderly(pNode head, NodeType x)
+{
+    pNode temp = head;
+    if (!temp)
+        return -1;
+    int index = 0;
+    while (temp->next && temp->next->data <= x)
+        temp = temp->next, index++;
+    if (temp->data != x)
+        return -1;
+    return index;
+}
+
 void main()
 {
     int temp = 0, c;
     c = getchar();
-    pNode head = newNode(c);
+    pNode heada = newNode(c);
+    while ((c = getchar()) !=EOF && c != '\n')
+    {
+        add(&heada, getchar());
+    }
+    c = getchar();
+    pNode headb = newNode(c);
     while ((c = getchar()) != EOF && c != '\n')
     {
-        add(&head, getchar());
+        add(&headb, getchar());
     }
-    head = reverse(&head);
-    printc(head);
+    c = getchar();
+    pNode headc = newNode(c);
+    while ((c = getchar()) != EOF && c != '\n')
+    {
+        add(&headc, getchar());
+    }
+    modifyOrderly(&heada, headb, headc);
+    printc(heada);
 }
