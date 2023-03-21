@@ -179,70 +179,12 @@ pNode differentiate(ppNode head)
     return *head;
 }
 
+// test function
 void main()
 {
-    NodeType x = 0, c, sign;
-    Power p = 0;
-    pNode list = NULL;
-    c = getchar();
-    if (c == 'x')
-    {
-        c = getchar();
-        p = 0;
-        if (c == ' ')
-            p = 1, c = getchar();
-        if (c == '^')
-        {
-            while ((c = getchar()) >= '0' && c <= '9')
-                p = p * 10 + c - '0';
-        }
-        list = add(&list, 1, p);
-    }
-    while (c != '\n')
-    {
-        if (list)
-            c = getchar();
-        sign = 1, x = p = 0;
-        if (c == '+')
-            c = getchar();
-        if (c == '-')
-            sign = -1, c = getchar();
-        if (c >= '0' && c <= '9')
-            x = c - '0';
-        while ((c = getchar()) >= '0' && c <= '9')
-            x = x * 10 + c - '0';
-        if (x == 0)
-            x = 1;
-        if (c == ' ')
-        {
-            list = add(&list, x * sign, 0);
-            continue;
-        }
-        if (c == '\n')
-        {
-            list = add(&list, x * sign, 0);
-            break;
-        }
-        if (c == 'x')
-        {
-            if ((c = getchar()) == ' ')
-            {
-                list = add(&list, x * sign, 1);
-                continue;
-            }
-            if (c == '\n')
-            {
-                list = add(&list, x * sign, 1);
-                break;
-            }
-            if (c == '^')
-            {
-                while ((c = getchar()) >= '0' && c <= '9')
-                    p = p * 10 + c - '0';
-            }
-            list = add(&list, x * sign, p);
-        }
-    }
+    pNode list = newNode(3, 2);
+    list = add(&list, 4, 0);
     list = differentiate(&list);
     print(list);
+    printf("\n");  
 }
