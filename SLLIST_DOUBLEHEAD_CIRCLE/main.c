@@ -1,14 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define MAXLEN 100
+#define MAXSTEP 10000
 
 typedef int NodeType;
 int length = 0;
+int step = 0;
 
-typedef struct SLLISTNode
+typedef struct DLLISTNode
 {
     NodeType data;
-    struct SLLISTNode* next;
+    struct DLLISTNode* pre;
+    struct DLLISTNode* next;
+    int freq;
+    int step;
 } Node, * pNode, ** ppNode;
 
 pNode newNode(NodeType x);
@@ -18,39 +22,34 @@ void print(pNode head);
 void printc(pNode head);
 void add(ppNode head, NodeType x);
 pNode delete(ppNode head, int index);
-pNode deleteRange(ppNode head, NodeType mink, NodeType maxk);
-pNode deleteRangeOrderly(ppNode head, NodeType mink, NodeType maxk);
-void releaseList(ppNode head);
-pNode reverse(ppNode head);
-pNode addHead(ppNode head, NodeType x);
-pNode modifyOrderly(ppNode heada, pNode headb, pNode headc);
-int locateOrderly(pNode head, NodeType x);
+pNode bubble(ppNode head, ppNode node);
+pNode locate(ppNode head, NodeType x);
+pNode swap(pNode head, ppNode nodea, ppNode nodeb);
 
 // make a new Node
 pNode newNode(NodeType x)
 {
     pNode temp = (pNode)malloc(sizeof(Node));
     temp->data = x;
-    temp->next = NULL;
+    temp->next = temp;
+    temp->pre = temp;
+    temp->freq = 0;
+    temp->step = MAXSTEP;
     return temp;
 }
 
 // return the end of head
 pNode end(pNode head)
 {
-    if (!head)
-        return NULL;
-    while (head->next)
-        head = head->next;
-    return head;
+    return head->pre;
 }
 
 // return the length of the list and update the value length
 int num(pNode head)
 {
-    length = 0;
-    pNode temp = head;
-    while (temp)
+    length = 1;
+    pNode temp = head->next;
+    while (temp != head)
         temp = temp->next, length++;
     return length;
 }
@@ -59,26 +58,16 @@ int num(pNode head)
 void print(pNode head)
 {
     pNode temp = head;
-    if (!head)
-    {
-        printf("NULL");
-        return;
-    }
-    while (temp->next)
+    while (temp->next != head)
         printf("%d ", temp->data), temp = temp->next;
-    printf("%d", temp->data);
+    printf("%d\n", temp->data);
 }
 
 // print the whole list as characters with comma intervals
 void printc(pNode head)
 {
     pNode temp = head;
-    if (!head)
-    {
-        printf("NULL");
-        return;
-    }
-    while (temp->next)
+    while (temp->next != head)
         printf("%c,", temp->data), temp = temp->next;
     printf("%c", temp->data);
 }
@@ -86,160 +75,89 @@ void printc(pNode head)
 // add a new Node in the end
 void add(ppNode head, NodeType x)
 {
-    pNode tail = newNode(x);
-    pNode last;
-    last = end(*head);
-    last->next = tail;
-    length++;
+    pNode newN = newNode(x);
+    pNode temp = (*head)->pre;
+    temp->next = (*head)->pre = newN;
+    newN->pre = temp;
+    newN->next = *head;
 }
 
-// delete the certain Node by index, which starts from zero and return the new list
-pNode delete(ppNode head, int index)
+pNode swap(pNode head, ppNode nodea, ppNode nodeb)
 {
-    pNode temp = *head;
-    pNode temp1 = *head;
-    if (!index)
+    pNode a = *nodea, b = *nodeb;
+    if (a->next == b)
     {
-        temp1 = temp1->next, free(temp);
-        return temp1;
+        pNode tempnext = b->next, temppre = a->pre;
+        tempnext->pre = a, temppre->next = b;
+        b->next = a, a->pre = b;
+        a->next = tempnext;
+        b->pre = temppre;
     }
-    while (--index)
-        temp = temp->next;
-    pNode x = temp->next;
-    if (!x)
-        temp->next = NULL;
+    else if (a == b->next)
+        return swap(head, nodeb, nodea);
     else
-        temp->next = x->next;
-    free(x);
-    length--;
+    {
+        pNode apre = a->pre, anext = a->next, bpre = b->pre, bnext = b->next;
+        apre->next = anext->pre = b, bpre->next = bnext->pre = a;
+        a->pre = bpre, a->next = bnext, b->pre = apre, b->next = anext;
+    }
+    if (a == head)
+        return b;
+    if (b == head)
+        return a;
+    return head;
+}
+
+pNode bubble(ppNode head, ppNode node)
+{
+    if (*node == *head)
+        return *head;
+    while ((*node)->pre->data != (*head)->data && (*node)->freq > (*node)->pre->freq)
+        *head = swap(*head, node, &((*node)->pre));
+    while ((*node)->pre->data != (*head)->data && (*node)->freq == (*node)->pre->freq)
+    {
+        if ((*node)->step > (*node)->pre->step)
+            break;
+        *head = swap(*head, node, &((*node)->pre));
+    }
+    if ((*node)->pre->data == (*head)->data && (*node)->freq > (*head)->freq || ((*node)->freq == (*head)->freq && (*node)->step < (*head)->step))
+    {
+        *head = swap(*head, node, head);
+        return *node;
+    }
     return *head;
 }
 
-// delete the Nodes with data that are in the range of (mink, maxk) and return the new list
-pNode deleteRange(ppNode head, NodeType mink, NodeType maxk)
-{
-    pNode temp = NULL;
-    pNode pointer = *head;
-    while (pointer && (pointer->data > mink && pointer->data < maxk))
-        pointer = pointer->next;
-    if (!pointer)
-        return NULL;
-    temp = newNode(pointer->data);
-    pointer = pointer->next;
-    while (pointer)
-    {
-        if (pointer->data <= mink || pointer->data >= maxk)
-            add(&temp, pointer->data);
-        pointer = pointer->next;
-    }
-    releaseList(head);
-    return temp;
-}
-
-// delete the Nodes with data that are in the range of (mink, maxk) in a oroderly list and return the new list
-pNode deleteRangeOrderly(ppNode head, NodeType mink, NodeType maxk)
+pNode locate(ppNode head, NodeType x)
 {
     pNode temp = *head;
-    pNode temp0 = NULL, temp1 = NULL;
-    if (!temp)
-        return NULL;
-    while (temp->next && temp->next->data <= mink)
+    while (temp->next != (*head) && temp->data != x)
         temp = temp->next;
-    if (temp)
-        temp0 = temp;
-    while (temp0->next && temp0->next->data < maxk)
-        temp0 = temp0->next;
-    temp->next = temp0->next;
-    temp0->next = NULL;
-    releaseList(&temp);
+    if (temp->data == x)
+    {
+        temp->freq++;
+        if (temp->step == MAXSTEP)
+        {
+            temp->step = step;
+        }
+        step++;
+        return bubble(head, &temp);
+    }
     return *head;
 }
 
-// reverse the whole list and return the new list
-pNode reverse(ppNode head)
-{
-    pNode pointer = *head, temp = NULL;
-    while (pointer)
-        temp = addHead(&temp, pointer->data), pointer = pointer->next;
-    pointer = *head;
-    releaseList(&pointer);
-    return temp;
-}
-
-// add a Node before the whole list and return the new list
-pNode addHead(ppNode head, NodeType x)
-{
-    pNode newHead = newNode(x);
-    newHead->next = *head;
-    *head = newHead;
-    return *head;
-}
-
-// release the space occupied by the list
-void releaseList(ppNode head)
-{
-    pNode temp = *head;
-    pNode pointer = temp;
-    while (!temp)
-    {
-        temp = temp->next;
-        free(pointer);
-        pointer = temp;
-    }
-}
-
-// delete the Nodes in the heada that have the same data both in headb and headc
-pNode modifyOrderly(ppNode heada, pNode headb, pNode headc)
-{
-    pNode temp = *heada;
-    NodeType tempData;
-    int index = 0;
-    while (temp)
-    {
-        tempData = temp->data;
-        temp = temp->next;
-        if (locateOrderly(headb, tempData) > -1 && locateOrderly(headc, tempData) > -1)
-            *heada = delete(heada, index), index--;
-        index++;
-    }
-    return *heada;
-}
-
-// locate a certain datum in the list and return its first index (start from 0); if it doesn't exist, return -1
-int locateOrderly(pNode head, NodeType x)
-{
-    pNode temp = head;
-    if (!temp)
-        return -1;
-    int index = 0;
-    while (temp->next && temp->next->data <= x)
-        temp = temp->next, index++;
-    if (temp->data != x)
-        return -1;
-    return index;
-}
 
 void main()
 {
-    int temp = 0, c;
-    c = getchar();
-    pNode heada = newNode(c);
-    while ((c = getchar()) != EOF && c != '\n')
-    {
-        add(&heada, getchar());
-    }
-    c = getchar();
-    pNode headb = newNode(c);
-    while ((c = getchar()) != EOF && c != '\n')
-    {
-        add(&headb, getchar());
-    }
-    c = getchar();
-    pNode headc = newNode(c);
-    while ((c = getchar()) != EOF && c != '\n')
-    {
-        add(&headc, getchar());
-    }
-    modifyOrderly(&heada, headb, headc);
-    printc(heada);
+    pNode head = newNode(1);
+    add(&head, 2);
+    add(&head, 3);
+    add(&head, 4);
+    add(&head, 5);
+    print(head);
+    head = locate(&head, 1);
+    head = locate(&head, 3);
+    head = locate(&head, 2);
+    head = locate(&head, 2);
+    print(head);
 }
