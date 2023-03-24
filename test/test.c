@@ -1,248 +1,129 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define MAXLEN 100
 
-typedef int NodeType, Power;
-int length = 0;
+const int MAXLEN = 100;
 
-typedef struct SLLISTNode
+typedef char T;
+
+typedef struct stack
 {
-    NodeType data;
-    Power power;
-    struct SLLISTNode* next;
-} Node, * pNode, ** ppNode;
+	T* s;
+	T* end;
+	int len;
+} Stack, * pStack, ** ppStack;
 
-pNode newNode(NodeType x, Power power);
-pNode end(pNode head);
-void print(pNode head);
-void printNode(pNode head, pNode node);
-pNode add(ppNode head, NodeType x, Power power);
-pNode differentiate(ppNode head);
+pStack init();
+void push(ppStack pp, T x);
+T top(pStack p) { if (!isempty(p)) return *(p->end - 1); printf("ERROR: Stack is empty"); return NULL; }
+T pop(ppStack pp);
+void printc(pStack p);
+int isempty(pStack p);
 
-// make a new Node
-pNode newNode(NodeType x, Power power)
+pStack init()
 {
-    pNode temp = (pNode)malloc(sizeof(Node));
-    temp->data = x;
-    temp->power = power;
-    temp->next = temp;
-    return temp;
+	pStack p = (pStack)malloc(sizeof(pStack));
+	if (p)
+	{
+		p->end = p->s = (T*)malloc(sizeof(T) * MAXLEN);
+		p->len = 0;
+	}
+	return p;
 }
 
-// return the end of head
-pNode end(pNode head)
+void push(ppStack pp, T x)
 {
-    if (!head)
-        return NULL;
-    pNode temp = head;
-    while (temp->next != head)
-        temp = temp->next;
-    return temp;
+	pStack p = *pp;
+	if (p->len < MAXLEN - 1)
+	{
+		*(p->end++) = x;
+		return;
+	}
+	printf("ERROR: Stack is full\n");
 }
 
-void printNode(pNode head, pNode node)
+T pop(ppStack pp)
 {
-    NodeType data = node->data;
-    NodeType power = node->power;
-    if (node == head && data > 0 && power == 0)
-    {
-        printf("%d ", data);
-        return;
-    }
-    if (node != head && data > 0 && power == 0)
-    {
-        printf("+ %d ", data);
-        return;
-    }
-    if (data < 0 && power == 0)
-    {
-        printf("- %d ", -data);
-        return;
-    }
-    if (node != head && data > 0 && power)
-    {
-        if (data != 1)
-            printf("+ %d", data);
-        else
-            printf("+ ");
-    }
-    if (node == head && node->data > 0 && data != 1 && power)
-        printf("%d", node->data);
-    if (node->data < 0 && power)
-    {
-        if (data != 1)
-            printf("- %d", -data);
-        else
-            printf("- ");
-    }
-    if (node->power > 0)
-    {
-        printf("x");
-        if (node->power != 1)
-            printf("^%d", node->power);
-    }
-    printf(" ");
+	pStack p = *pp;
+	if (p->s == p->end)
+	{
+		printf("ERROR: Stack is empty");
+		return NULL;
+	}
+	T x = *(--p->end);
+	return x;
 }
 
-// print the whole list as integers with blank intervals
-void print(pNode head)
+void printc(pStack p)
 {
-    pNode temp = head;
-    if (!head)
-    {
-        printf("0");
-        return;
-    }
-    while (temp->next != head)
-        printNode(head, temp), temp = temp->next;
-    printNode(head, temp);
+	T* temp = p->s;
+	while (temp != p->end)
+		printf("%c", *temp), temp++;
+	printf("\n");
 }
 
-// add a new Node in the end
-pNode add(ppNode head, NodeType x, Power power)
+int isempty(pStack p)
 {
-    pNode node, last, temp = *head;
-    last = end(*head);
-    if (!(*head))
-        return *head = newNode(x, power);
-    if (temp->power == power)
-    {
-        temp->data += x;
-        return temp;
-    }
-    if (temp->power < power)
-    {
-        node = newNode(x, power);
-        node->next = temp;
-        last->next = node;
-        return node;
-    }
-    if (temp == last)
-    {
-        if (temp->power == power)
-            temp->data += x;
-        else
-        {
-            node = newNode(x, power), temp->next = node, node->next = temp;
-            if (temp->power < power)
-                return node;
-        }
-        return *head;
-    }
-    while (temp->next != last && temp->next->power > power)
-    {
-        if (temp->power == power)
-        {
-            temp->data += x;
-            return *head;
-        }
-        temp = temp->next;
-    }
-    if (temp->next == last)
-    {
-        if (last->power > power)
-            node = newNode(x, power), last->next = node, node->next = *head;
-        else if (last->power < power)
-            node = newNode(x, power), temp->next = node, node->next = last;
-        else
-            last->data += x;
-        return *head;
-    }
-    if (temp->next->power == power)
-    {
-        temp->next->data += x;
-        return *head;
-    }
-    node = newNode(x, power);
-    node->next = temp->next;
-    temp->next = node;
-    return *head;
+	if (p->s == p->end)
+		return 1;
+	return 0;
 }
 
-pNode differentiate(ppNode head)
+int higher(char op1, char op2)
 {
-    pNode h = *head, nodenext = h->next;
-    if (h->power == 0)
-        return *head = NULL;
-    while (h->next != *head)
-        h->data *= h->power, h->power--, h = h->next;
-    h->data *= h->power, h->power--;
-    h = *head;
-    while (nodenext != *head)
-    {
-        if (nodenext->data == 0)
-            h->next = nodenext->next;
-        h = h->next, nodenext = h->next;
-    }
-    if (h->data == 0)
-        return *head = NULL;
-    return *head;
+	if ((op1 == '*' || op1 == '/') && (op2 == '+' || op2 == '-'))
+		return 1;
+	return 0;
 }
 
-void main()
+int isCharacter(char c)
 {
-    NodeType x = 0, c, sign;
-    Power p = 0;
-    pNode list = NULL;
-    c = getchar();
-    if (c == 'x')
-    {
-        c = getchar();
-        p = 0;
-        if (c == ' ')
-            p = 1, c = getchar();
-        if (c == '^')
-        {
-            while ((c = getchar()) >= '0' && c <= '9')
-                p = p * 10 + c - '0';
-        }
-        list = add(&list, 1, p);
-    }
-    while (c != '\n')
-    {
-        if (list)
-            c = getchar();
-        sign = 1, x = p = 0;
-        if (c == '+')
-            c = getchar();
-        if (c == '-')
-            sign = -1, c = getchar();
-        if (c >= '0' && c <= '9')
-            x = c - '0';
-        while ((c = getchar()) >= '0' && c <= '9')
-            x = x * 10 + c - '0';
-        if (x == 0)
-            x = 1;
-        if (c == ' ')
-        {
-            list = add(&list, x * sign, 0);
-            continue;
-        }
-        if (c == '\n')
-        {
-            list = add(&list, x * sign, 0);
-            break;
-        }
-        if (c == 'x')
-        {
-            if ((c = getchar()) == ' ')
-            {
-                list = add(&list, x * sign, 1);
-                continue;
-            }
-            if (c == '\n')
-            {
-                list = add(&list, x * sign, 1);
-                break;
-            }
-            if (c == '^')
-            {
-                while ((c = getchar()) >= '0' && c <= '9')
-                    p = p * 10 + c - '0';
-            }
-            list = add(&list, x * sign, p);
-        }
-    }
-    list = differentiate(&list);
-    print(list);
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
+int isOp(char c)
+{
+	return c == '+' || c == '-' || c == '*' || c == '/';
+}
+
+int main()
+{
+	pStack opr = init();
+	char c = 0, op = 0;
+	while ((c = getchar()) !=  '\n' && c != EOF)
+	{
+		if (isCharacter(c))
+		{
+			printf("%c", c);
+			continue;
+		}
+		if (c == '(')
+			push(&opr, c);
+		if (isOp(c))
+		{
+			if (isempty(opr) || higher(c, op = top(opr)) || op == '(')
+				push(&opr, c);
+			else
+			{
+				printf("%c", pop(&opr));
+				while (isOp(c))
+				{
+					if (c == '\n' || c == EOF)
+						return 0;
+					else if (isempty(opr) || higher(c, op = top(opr)) || op == '(')
+					{
+						push(&opr, c);
+						break;
+					}
+					else
+						printf("%c", pop(&opr));
+				}
+			}
+		}
+		if (c == ')')
+			while ((op = pop(&opr)) != '(')
+				printf("%c", op);
+	}
+	while (!isempty(opr))
+		printf("%c", pop(&opr));
+	return 0;
 }

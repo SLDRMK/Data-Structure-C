@@ -1,2 +1,5 @@
 ﻿  test.c
+S:\大二\大二下\数据结构C\test\test.c(17,24): warning C4013: “isempty”未定义；假设外部返回 int
+S:\大二\大二下\数据结构C\test\test.c(17,102): warning C4047: “return”:“T”与“void *”的间接级别不同
+S:\大二\大二下\数据结构C\test\test.c(50,14): warning C4047: “return”:“T”与“void *”的间接级别不同
   test.vcxproj -> S:\大二\大二下\数据结构C\test\x64\Debug\test.exe
