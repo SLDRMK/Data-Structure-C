@@ -1,129 +1,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int MAXLEN = 100;
+typedef int T;
 
-typedef char T;
-
-typedef struct stack
+typedef struct node
 {
-	T* s;
-	T* end;
-	int len;
-} Stack, * pStack, ** ppStack;
+	T data;
+	struct node* pre;
+	struct node* next;
+} Node, * pNode, ** ppNode;
 
-pStack init();
-void push(ppStack pp, T x);
-T top(pStack p) { if (!isempty(p)) return *(p->end - 1); printf("ERROR: Stack is empty"); return NULL; }
-T pop(ppStack pp);
-void printc(pStack p);
-int isempty(pStack p);
-
-pStack init()
+typedef struct queue
 {
-	pStack p = (pStack)malloc(sizeof(pStack));
-	if (p)
-	{
-		p->end = p->s = (T*)malloc(sizeof(T) * MAXLEN);
-		p->len = 0;
-	}
+	pNode head;
+	pNode trailer;
+} Queue, * pQueue, ** ppQueue;
+
+pNode newNode(T x);
+pQueue newQueue();
+void addNext(ppNode node, T x);
+T getLast(pNode node) { return node->pre->data; }
+T removeLast(ppNode node);
+int isempty(pQueue queue) { return queue->head->next == queue->trailer; }
+void push(ppQueue queue, T x) { addNext(&((*queue)->head), x); }
+T pop(ppQueue queue) { if (isempty(*queue)) return NULL; return removeLast(&((*queue)->trailer)); }
+T read(pQueue queue) { return getLast(queue->trailer); }
+
+pNode newNode(T x)
+{
+	pNode p = (pNode)malloc(sizeof(Node));
+	p->data = x;
+	p->pre = NULL;
+	p->next = NULL;
 	return p;
 }
 
-void push(ppStack pp, T x)
+pQueue newQueue()
 {
-	pStack p = *pp;
-	if (p->len < MAXLEN - 1)
-	{
-		*(p->end++) = x;
-		return;
-	}
-	printf("ERROR: Stack is full\n");
+	pQueue queue = (pQueue)malloc(sizeof(Queue));
+	queue->head = newNode(NULL);
+	queue->trailer = newNode(NULL);
+	queue->head->next = queue->trailer;
+	queue->trailer->pre = queue->head;
+	return queue;
 }
 
-T pop(ppStack pp)
+void addNext(ppNode node, T x)
 {
-	pStack p = *pp;
-	if (p->s == p->end)
-	{
-		printf("ERROR: Stack is empty");
-		return NULL;
-	}
-	T x = *(--p->end);
+	pNode p = *node;
+	pNode n = newNode(x);
+	n->next = p->next;
+	p->next = n;
+	n->next->pre = n;
+	n->pre = p;
+}
+
+T removeLast(ppNode node)
+{
+	pNode n = *node;
+	pNode pre = n->pre;
+	n->pre = pre->pre;
+	pre->pre->next = n;
+	T x = pre->data;
+	free(pre);
 	return x;
 }
 
-void printc(pStack p)
+void print(pQueue queue)
 {
-	T* temp = p->s;
-	while (temp != p->end)
-		printf("%c", *temp), temp++;
-	printf("\n");
-}
-
-int isempty(pStack p)
-{
-	if (p->s == p->end)
-		return 1;
-	return 0;
-}
-
-int higher(char op1, char op2)
-{
-	if ((op1 == '*' || op1 == '/') && (op2 == '+' || op2 == '-'))
-		return 1;
-	return 0;
-}
-
-int isCharacter(char c)
-{
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-
-int isOp(char c)
-{
-	return c == '+' || c == '-' || c == '*' || c == '/';
+	pNode n = queue->trailer->pre;
+	while (n != queue->head->next)
+		printf("%d,", n->data), n = n->pre;
+	printf("%d", n->data);
 }
 
 int main()
 {
-	pStack opr = init();
-	char c = 0, op = 0;
-	while ((c = getchar()) !=  '\n' && c != EOF)
+	int length = 0;
+	pQueue queue = newQueue();
+	scanf_s("%d", &length);
+	length--;
+	T c = getchar();
+	while ((c = getchar()) != '\n' && c != EOF && length)
 	{
-		if (isCharacter(c))
-		{
-			printf("%c", c);
-			continue;
-		}
-		if (c == '(')
-			push(&opr, c);
-		if (isOp(c))
-		{
-			if (isempty(opr) || higher(c, op = top(opr)) || op == '(')
-				push(&opr, c);
-			else
-			{
-				printf("%c", pop(&opr));
-				while (isOp(c))
-				{
-					if (c == '\n' || c == EOF)
-						return 0;
-					else if (isempty(opr) || higher(c, op = top(opr)) || op == '(')
-					{
-						push(&opr, c);
-						break;
-					}
-					else
-						printf("%c", pop(&opr));
-				}
-			}
-		}
-		if (c == ')')
-			while ((op = pop(&opr)) != '(')
-				printf("%c", op);
+		if (c == ',')
+			length--;
+		else
+			push(&queue, c - '0');
 	}
-	while (!isempty(opr))
-		printf("%c", pop(&opr));
-	return 0;
+	push(&queue, c - '0');
+	print(queue);
 }
